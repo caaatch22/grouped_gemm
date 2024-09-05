@@ -1,5 +1,4 @@
 #include "grouped_gemm.h"
-#include "permute.h"
 #include "sinkhorn.h"
 
 #include <torch/extension.h>

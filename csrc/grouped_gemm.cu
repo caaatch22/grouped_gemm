@@ -88,7 +88,7 @@ void CublasGemm(cublasHandle_t cublas_handle, c10::BFloat16 *a, int64_t a_rows,
   float alpha = 1.0, beta = 0.0;
   CUBLAS_CALL(cublasGemmEx(cublas_handle, transpose_b, transpose_a, m, n, k,
                            &alpha, b, CUDA_R_16BF, ldb, a, CUDA_R_16BF, lda,
-                           &beta, c, CUDA_R_16BF, c_cols, CUDA_R_32F,
+                           &beta, c, CUDA_R_16BF, c_cols, HIPBLAS_COMPUTE_32F,
                            CUBLAS_GEMM_DEFAULT));
 }
 
