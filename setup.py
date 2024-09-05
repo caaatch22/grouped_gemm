@@ -40,10 +40,8 @@ if device_capability:
 ext_modules = [
     CUDAExtension(
         "grouped_gemm_backend",
-        ["csrc/ops.cu", "csrc/grouped_gemm.cu", "csrc/sinkhorn.cu", "csrc/permute.cu"],
-        include_dirs = [
-            f"{cwd}/third_party/cutlass/include/"
-        ],
+        ["csrc/ops.cu", "csrc/grouped_gemm.cu", "csrc/sinkhorn.cu"],
+        include_dirs = [],
         extra_compile_args={
             "cxx": [
                 "-fopenmp", "-fPIC", "-Wno-strict-aliasing"
