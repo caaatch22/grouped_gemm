@@ -15,13 +15,13 @@ NVIDIA_SUPPORTED_ARCHS = {"7.0", "7.5", "8.0", "8.6", "8.9", "9.0"}
 # and executed on the 8.6 or newer architectures. While the PTX code will
 # not give the best performance on the newer architectures, it provides
 # forward compatibility.
-env_arch_list = os.environ.get("TORCH_CUDA_ARCH_LIST", None)
-if env_arch_list:
-    # Let PyTorch builder to choose device to target for.
-    device_capability = ""
-else:
-    device_capability = torch.cuda.get_device_capability()
-    device_capability = f"{device_capability[0]}{device_capability[1]}"
+# env_arch_list = os.environ.get("TORCH_CUDA_ARCH_LIST", None)
+# if env_arch_list:
+#     # Let PyTorch builder to choose device to target for.
+#     device_capability = ""
+# else:
+#     device_capability = torch.cuda.get_device_capability()
+#     device_capability = f"{device_capability[0]}{device_capability[1]}"
 
 cwd = Path(os.path.dirname(os.path.abspath(__file__)))
 
@@ -31,11 +31,10 @@ nvcc_flags = [
     # "-DENABLE_FP8",  # Enable FP8 for cuda_version >= 11.8
 ]
 
-if device_capability:
-    nvcc_flags.extend([
-        "-O3",
-        "--offload-arch=gfx942",
-    ])
+nvcc_flags.extend([
+    "-O3",
+    "--offload-arch=gfx942",
+])
 
 ext_modules = [
     CUDAExtension(
