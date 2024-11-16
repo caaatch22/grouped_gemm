@@ -25,6 +25,24 @@ namespace grouped_gemm {
     TORCH_CHECK(status == CUBLAS_STATUS_SUCCESS, "CuBLAS Error");              \
   } while (0)
 
+#ifndef CHECK_HIP_ERROR
+#define CHECK_HIP_ERROR(error)                                                 \
+  if (error != hipSuccess) {                                                   \
+    fprintf(stderr, "Hip error: '%s'(%d) at %s:%d\n",                          \
+            hipGetErrorString(error), error, __FILE__, __LINE__);              \
+    exit(EXIT_FAILURE);                                                        \
+  }
+#endif
+#ifndef CHECK_HIPBLASLT_ERROR
+#define CHECK_HIPBLASLT_ERROR(error)                                           \
+  if (error != HIPBLAS_STATUS_SUCCESS) {                                       \
+    fprintf(stderr, "hipBLASLt error(Err=%d) at %s:%d\n", error, __FILE__,     \
+            __LINE__);                                                         \
+    fprintf(stderr, "\n");                                                     \
+    exit(EXIT_FAILURE);                                                        \
+  }
+#endif
+
 #define GROUPED_GEMM_STRINGIFY_HELPER(x) #x
 #define GROUPED_GEMM_STRINGIFY(x) GROUPED_GEMM_STRINGIFY_HELPER(x)
 
@@ -181,7 +199,7 @@ void gemmex_wrapper_bf16(hipblasHandle_t handle, hipblasOperation_t transa,
 void CublasGemm(cublasHandle_t cublas_handle, c10::BFloat16 *a, int64_t a_rows,
                 int64_t a_cols, bool trans_a, c10::BFloat16 *b, int64_t b_rows,
                 int64_t b_cols, bool trans_b, c10::BFloat16 *c, int64_t c_rows,
-                int64_t c_cols, cublasStream_t cublas_stream) {
+                int64_t c_cols, cudaStream_t cublas_stream) {
   int m = trans_b ? b_rows : b_cols;
   int k = trans_b ? b_cols : b_rows;
   int n = trans_a ? a_cols : a_rows;
@@ -251,7 +269,8 @@ void CublasGroupedGemmVariableK(torch::Tensor a, torch::Tensor b,
   for (int i = 0; i < bs; ++i) {
     int64_t k = batch_sizes.data_ptr<int64_t>()[i];
     CublasGemm(cublas_handle[i % NUM_STREAM], a_ptr, k, m, /*trans_a=*/true,
-               b_ptr, k, n, /*trans_b=*/false, c_ptr, m, n);
+               b_ptr, k, n, /*trans_b=*/false, c_ptr, m, n,
+               cublas_stream[i % NUM_STREAM]);
     a_ptr += k * m;
     b_ptr += k * n;
     c_ptr += m * n;
